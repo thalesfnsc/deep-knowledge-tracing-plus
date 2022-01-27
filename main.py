@@ -1,3 +1,4 @@
+from cgi import test
 import os
 import tensorflow as tf
 import time
@@ -67,6 +68,11 @@ rnn_cells = {
 }
 
 dataset = args.dataset
+if dataset == 'errex':
+    train_path = '/content/preprocessed_errex_data.csv'
+    test_path = '/content/preprocessed_errex_data.csv'
+    save_dir_prefix = '/content/'
+
 if dataset == 'a2009u':
     train_path = './data/assist2009_updated/assist2009_updated_train.csv'
     test_path = './data/assist2009_updated/assist2009_updated_test.csv'
