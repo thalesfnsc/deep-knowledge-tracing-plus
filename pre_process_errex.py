@@ -1,14 +1,110 @@
+from cgi import print_directory
 from re import A
 import pandas as pd
-import csv
+import numpy as np
+import pickle
+from iteration_utilities import duplicates
+from scipy.stats import pearsonr
+from sqlalchemy import column
 
-with open('/home/thales/deep-knowledge-tracing-plus/data/errex/errex data subproblems.csv','rb') as file:
+
+
+
+
+with open('/home/thales/deep-knowledge-tracing-plus/skills_scores_estimates.csv','rb') as file:
     df = pd.read_csv(file)
 
 
+with open('/home/thales/deep-knowledge-tracing-plus/data/errex/ErrEx posttest data.xlsx','rb') as file:
+    df_2 = pd.read_excel(file)
+
+
+df_2 = df_2.drop([0,1], axis=0)
+df_2 = df_2.drop(df_2.columns[1:5],axis=1)
 
 
 
+
+with open('/home/thales/deep-knowledge-tracing-plus/data/errex/errex data subproblems.csv','rb') as file:
+    df_3 = pd.read_csv(file)
+
+
+students_used = df_3['student_id'].unique()
+students_in_sheet = df_2['Anon Student Id'].values
+
+
+
+df_post_dropped = df_2.drop_duplicates('Anon Student Id',keep='first')
+df_post_dropped = df_post_dropped.drop(df_post_dropped.index[598])
+
+decimal_addition_post = df_post_dropped['Unnamed: 171'].values
+ordering_decimals_post=  df_post_dropped['Unnamed: 172'].values 
+complete_sequence_post = df_post_dropped['Unnamed: 173'].values 
+placement_number_post = df_post_dropped['Unnamed: 174'].values 
+
+'''
+print(ordering_decimals_post[:10])
+print(placement_number_post[:10])
+print(complete_sequence_post[:10])
+print(decimal_addition_post[:10])
+'''
+
+decimal_addition_estimate = df['DecimalAddition'].values
+placement_number_estimate = df['PlacementOnNumberLine'].values
+complete_sequence_estimate = df['CompleteTheSequence'].values
+ordering_decimals_estimate = df['OrderingDecimals'].values
+
+print(len(decimal_addition_estimate))
+
+pearson_correlations = {}
+
+pearson_correlations['OrderingDecimals'] = pearsonr(ordering_decimals_estimate,ordering_decimals_post)[0]
+pearson_correlations['PlacementOnNumberLine'] = pearsonr(placement_number_estimate,placement_number_post)[0]
+pearson_correlations['CompleteTheSequence'] = pearsonr(complete_sequence_estimate,complete_sequence_post)[0]
+pearson_correlations['DecimalAddition'] = pearsonr(decimal_addition_estimate,decimal_addition_post)[0]
+
+print(pearson_correlations)
+
+df_results = pd.DataFrame.from_dict(pearson_correlations,orient="index",columns=['Pearson Correlations'])
+df_results.to_csv('results_pearson_coeff.csv')
+
+
+
+
+
+print(df_results)
+
+
+
+"""
+students_interations = {}
+
+for student in df['student_id'].unique():
+    students_interations[student] = [df['problem_id'][df['student_id'] == student].values,df['correct'][df['student_id'] == student].values]
+
+
+with open ('student_interations.pickle','wb') as file:
+    pickle.dump(students_interations,file)
+"""
+
+
+
+
+
+
+
+
+'''
+problems_per_skills = {}
+
+for skill in df['skill_name'].unique():
+    problems_per_skills[skill] = np.unique(df['problem_id'][df['skill_name']==skill].values)
+
+with open ('problems_per_skills.pickle','wb') as file:
+    pickle.dump(problems_per_skills,file)
+'''
+
+'''
 students_data ={}
 
 for student in df['student_id'].unique():
@@ -26,6 +122,12 @@ with open('/home/thales/deep-knowledge-tracing-plus/data/errex/preprocessed_erre
         for keys in student_info.keys():       
             writer.writerow(students_data[student][keys])
     file.close()
+
+with open ('student_data.pickle','wb') as file:
+
+    pickle.dump(students_data,file)
+'''
+
 
 
 

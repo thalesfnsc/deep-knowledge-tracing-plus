@@ -1,9 +1,13 @@
 from cgi import test
+from copyreg import pickle
+from ctypes import util
+import math
 import os
+from sklearn import utils
 import tensorflow as tf
 import time
 import numpy as np
-
+import pickle
 from utils import DKT
 from load_data import DKTData
 
@@ -68,10 +72,11 @@ rnn_cells = {
 }
 
 dataset = args.dataset
+
 if dataset == 'errex':
-    train_path = '/content/preprocessed_errex_data.csv'
-    test_path = '/content/preprocessed_errex_data.csv'
-    save_dir_prefix = '/content/'
+    train_path = '/home/thales/deep-knowledge-tracing-plus/data/errex/preprocessed_errex_data.csv'
+    test_path = '/home/thales/deep-knowledge-tracing-plus/data/errex/preprocessed_errex_data.csv'
+    save_dir_prefix = '/home/thales/deep-knowledge-tracing-plus/data/errex/'
 
 if dataset == 'a2009u':
     train_path = './data/assist2009_updated/assist2009_updated_train.csv'
@@ -128,17 +133,36 @@ def main():
     data_train = data.train
     data_test = data.test
     num_problems = data.num_problems
-
+    
     dkt = DKT(sess, data_train, data_test, num_problems, network_config,
               save_dir_prefix=save_dir_prefix,
               num_runs=num_runs, num_epochs=num_epochs,
-              keep_prob=keep_prob, logging=True, save=True)
+              keep_prob=keep_prob, logging=False, save=False)
 
     # run optimization of the created model
-    dkt.model.build_graph()
-    dkt.run_optimization()
+    #dkt.model.build_graph()
+    #dkt.run_optimization()
     # close the session
+
+    with open('/home/thales/deep-knowledge-tracing-plus/problems_per_skills.pickle','rb') as file:
+        problems_per_skills = pickle.load(file)
+
+    with open('/home/thales/deep-knowledge-tracing-plus/student_interations.pickle','rb') as file:
+        students_interations = pickle.load(file)
+
+
+    dkt.model.build_graph()
+    dkt.load_model()
+    students_mean = dkt.generate_knowledge_estimates(students_interations,problems_per_skills)
+
+    '''
+    with open ('students_mean.pickle','wb') as file:
+        pickle.dump(students_mean,file)
+    '''
+
+    
     sess.close()
+
 
 if __name__ == "__main__":
     start_time = time.time()

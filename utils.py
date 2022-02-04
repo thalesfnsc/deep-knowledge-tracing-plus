@@ -1,7 +1,7 @@
 import os, sys, time
 import tensorflow as tf
 from sklearn.metrics import roc_curve, auc
-from load_data import OriginalInputProcessor
+from load_data import OriginalInputProcessor, one_hot
 from model import Model
 import numpy as np
 import pandas as pd
@@ -109,6 +109,78 @@ class DKT(object):
 
         return auc_score, loss
 
+
+
+        
+
+    def predict(self,problem_seq,correct_seq,is_train=False):
+        model = self.model
+        sess = self.sess
+        y_pred = []
+        y_true = []
+        input_processor = OriginalInputProcessor()
+
+        X, y_seq, y_corr = input_processor.process_problems_and_corrects(problem_seqs=problem_seq,
+                                                                         correct_seqs=correct_seq,
+                                                                         num_problems=self.num_problems,
+                                                                         is_train=False)
+
+        feed_dict = {
+            model.X: X,
+            model.y_seq: y_seq,
+            model.y_corr: y_corr,
+            model.keep_prob: 1,
+        }
+        _target_preds, _target_labels, _target_preds_current, _target_labels_current, _loss = sess.run(
+                [model.target_preds,
+                 model.target_labels,
+                 model.target_preds_current,
+                 model.target_labels_current,
+                 model.loss],
+                feed_dict=feed_dict
+            )
+
+        y_pred += [p for p in _target_preds]
+        #y_true += [t for t in _target_labels]
+
+        return y_pred
+      #  print(correct_seq)
+    
+
+    def generate_knowledge_estimates(self,students_interations,problems_per_skills):
+
+        students_mean_of_correctness = {}
+        
+        for student in students_interations.keys():
+            
+            problem_seq = students_interations[student][0].tolist()
+            correct_seq = students_interations[student][1].tolist()
+            predict_seq = self.predict([problem_seq],[correct_seq])
+
+            #Percorre o dicionário dos problemas por skill e compara com a lista problem_seq e salva em outro
+            #dicionário o index do problema em problem seq de cada skill 
+            
+            skills_index = {}
+            for skill in problems_per_skills.keys():
+                index = []
+                for i in problem_seq:
+                    if i in problems_per_skills[skill]:
+                        index.append(problem_seq.index(i))
+                skills_index[skill] = index
+            
+            #Usa os index salvos no dicionário skills_index na lista de predições para calcular a média de cada skill 
+            mean_of_correctness = {}
+            for skill in skills_index.keys():
+                mean_of_correctness[skill] = np.mean([predict_seq[i] for i in skills_index[skill]])
+            
+            students_mean_of_correctness[student] = mean_of_correctness
+            del mean_of_correctness
+            del skills_index
+
+        return students_mean_of_correctness
+
+
+
     def evaluate(self, is_train=False):
         if is_train:
             data = self.data_train
@@ -118,6 +190,8 @@ class DKT(object):
         data.reset_cursor()
         model = self.model
         sess = self.sess
+
+
 
         y_pred = []
         y_true = []
@@ -129,6 +203,7 @@ class DKT(object):
         auc_score = 0.0
         for batch_idx in range(data.num_batches):
             X_batch, y_seq_batch, y_corr_batch = data.next_batch()
+            
             feed_dict = {
                 model.X: X_batch,
                 model.y_seq: y_seq_batch,
@@ -144,6 +219,9 @@ class DKT(object):
                 feed_dict=feed_dict
             )
             y_pred += [p for p in _target_preds]
+            
+            print([p for p in _target_preds])
+
             y_true += [t for t in _target_labels]
             y_pred_current += [p for p in _target_preds_current]
             y_true_current += [t for t in _target_labels_current]
@@ -159,6 +237,9 @@ class DKT(object):
             auc_score = 0.0
             auc_score_current = 0.0
             loss = 999999.9
+        
+        print(y_true[:20])
+        print(y_pred[:20])
 
         return auc_score, auc_score_current, loss
 
@@ -262,22 +343,27 @@ class DKT(object):
         save_dir = os.path.join(self.ckpt_save_dir, 'run_{}'.format(self.run_count), self.model_name)
         sess = self.sess
         # Define the tf saver
-        saver = tf.train.Saver()
+        saver = tf.compat.v1.train.Saver()
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
         save_path = os.path.join(save_dir, self.model_name)
+        print("save path:",save_path)
         saver.save(sess=sess, save_path=save_path)
-
+    
     def load_model(self):
         save_dir = os.path.join(self.ckpt_save_dir, 'run_{}'.format(self.run_count), self.model_name)
         sess = self.sess
         saver = tf.train.Saver()
-        save_path = os.path.join(save_dir, self.model_name)
-        if os.path.exists(save_path):
+        
+        #save_path = os.path.join(self.ckpt_save_dir, 'run_{}'.format(self.run_count))
+       # print(save_path)
+        
+        if os.path.exists(save_dir):
+            save_path = os.path.join(save_dir, self.model_name)
             saver.restore(sess=sess, save_path=save_path)
         else:
-            self._log("No model found at {}".format(save_path))
-
+            self._log("No model found at {}".format(save_dir))
+    
     def get_hidden_layer_output(self, problem_seqs, correct_seqs, layer):
         model = self.model
         sess = self.sess
@@ -304,10 +390,14 @@ class DKT(object):
         result = hidden_layers_outputs[layer]
         return result
 
+ 
+
+
+        
     def get_output_layer(self, problem_seqs, correct_seqs):
         model = self.model
         sess = self.sess
-
+        model.preds
         input_processor = OriginalInputProcessor()
         X, y_seq, y_corr = input_processor.process_problems_and_corrects(problem_seqs=problem_seqs,
                                                                          correct_seqs=correct_seqs,
