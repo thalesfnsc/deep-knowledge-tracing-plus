@@ -112,7 +112,6 @@ class DKT(object):
 
 
         
-
     def predict(self,problem_seq,correct_seq,is_train=False):
         model = self.model
         sess = self.sess
@@ -219,9 +218,6 @@ class DKT(object):
                 feed_dict=feed_dict
             )
             y_pred += [p for p in _target_preds]
-            
-            print([p for p in _target_preds])
-
             y_true += [t for t in _target_labels]
             y_pred_current += [p for p in _target_preds_current]
             y_true_current += [t for t in _target_labels_current]
@@ -238,9 +234,6 @@ class DKT(object):
             auc_score_current = 0.0
             loss = 999999.9
         
-        print(y_true[:20])
-        print(y_pred[:20])
-
         return auc_score, auc_score_current, loss
 
     def run_optimization(self):
