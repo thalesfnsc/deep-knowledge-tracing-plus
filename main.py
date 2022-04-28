@@ -144,6 +144,8 @@ def main():
     #dkt.run_optimization()
     # close the session
 
+
+
     with open('/home/thales/deep-knowledge-tracing-plus/problems_per_skills.pickle','rb') as file:
         problems_per_skills = pickle.load(file)
 
@@ -153,12 +155,12 @@ def main():
 
     dkt.model.build_graph()
     dkt.load_model()
+
     students_mean = dkt.generate_knowledge_estimates(students_interations,problems_per_skills)
 
-    '''
+    
     with open ('students_mean.pickle','wb') as file:
         pickle.dump(students_mean,file)
-    '''
 
     
     sess.close()

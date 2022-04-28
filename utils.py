@@ -118,6 +118,7 @@ class DKT(object):
         y_pred = []
         y_true = []
         input_processor = OriginalInputProcessor()
+        
 
         X, y_seq, y_corr = input_processor.process_problems_and_corrects(problem_seqs=problem_seq,
                                                                          correct_seqs=correct_seq,

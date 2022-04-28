@@ -36,6 +36,8 @@ class OriginalInputProcessor(object):
         correct_seqs_pad = temp
 
         # one hot encode the information
+        
+
         problem_seqs_oh = one_hot(problem_seqs_pad, depth=num_problems)
         correct_seqs_oh = one_hot(correct_seqs_pad, depth=num_problems)
 
