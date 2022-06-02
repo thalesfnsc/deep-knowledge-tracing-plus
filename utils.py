@@ -5,6 +5,7 @@ from load_data import OriginalInputProcessor, one_hot
 from model import Model
 import numpy as np
 import pandas as pd
+import time
 
 SPLIT_MSG = "***********"
 
@@ -150,7 +151,7 @@ class DKT(object):
     def generate_knowledge_estimates(self,students_interations,problems_per_skills):
 
         students_mean_of_correctness = {}
-        
+        start  = time.time()
         for student in students_interations.keys():
             
             problem_seq = students_interations[student][0].tolist()
@@ -159,7 +160,7 @@ class DKT(object):
 
             #Percorre o dicionário dos problemas por skill e compara com a lista problem_seq e salva em outro
             #dicionário o index do problema em problem seq de cada skill 
-            
+            '''
             skills_index = {}
             for skill in problems_per_skills.keys():
                 index = []
@@ -176,7 +177,10 @@ class DKT(object):
             students_mean_of_correctness[student] = mean_of_correctness
             del mean_of_correctness
             del skills_index
+        '''
+        end = time.time()
 
+        print('time elapsed:',end-start)
         return students_mean_of_correctness
 
 

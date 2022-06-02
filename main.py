@@ -74,9 +74,9 @@ rnn_cells = {
 dataset = args.dataset
 
 if dataset == 'errex':
-    train_path = '/home/thales/deep-knowledge-tracing-plus/data/errex/preprocessed_errex_data.csv'
-    test_path = '/home/thales/deep-knowledge-tracing-plus/data/errex/preprocessed_errex_data.csv'
-    save_dir_prefix = '/home/thales/deep-knowledge-tracing-plus/data/errex/'
+    train_path = '/content/deep-knowledge-tracing-plus/data/errex/errex_data_train1.csv'
+    test_path = '/content/deep-knowledge-tracing-plus/data/errex/errex_data_train1.csv'
+    save_dir_prefix = '/content/deep-knowledge-tracing-plus/data/errex/'
 
 if dataset == 'a2009u':
     train_path = './data/assist2009_updated/assist2009_updated_train.csv'
@@ -118,12 +118,14 @@ network_config['lambda_w1'] = args.lambda_w1
 network_config['lambda_w2'] = args.lambda_w2
 network_config['lambda_o'] = args.lambda_o
 
+
 num_runs = args.num_runs
 num_epochs = args.num_epochs
 batch_size = args.batch_size
 keep_prob = args.keep_prob
 
 ckpt_save_dir = args.ckpt_save_dir
+
 def main():
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
@@ -134,33 +136,36 @@ def main():
     data_test = data.test
     num_problems = data.num_problems
     
+    print(num_problems)
     dkt = DKT(sess, data_train, data_test, num_problems, network_config,
               save_dir_prefix=save_dir_prefix,
               num_runs=num_runs, num_epochs=num_epochs,
-              keep_prob=keep_prob, logging=False, save=False)
-
-    # run optimization of the created model
-    #dkt.model.build_graph()
-    #dkt.run_optimization()
+              keep_prob=keep_prob, logging=True, save=True)
+    
+    #run optimization of the created model
+    
+    dkt.model.build_graph()
+    dkt.run_optimization()
     # close the session
 
 
-
+    '''
     with open('/home/thales/deep-knowledge-tracing-plus/problems_per_skills.pickle','rb') as file:
         problems_per_skills = pickle.load(file)
 
     with open('/home/thales/deep-knowledge-tracing-plus/student_interations.pickle','rb') as file:
         students_interations = pickle.load(file)
-
-
-    dkt.model.build_graph()
-    dkt.load_model()
-
-    students_mean = dkt.generate_knowledge_estimates(students_interations,problems_per_skills)
-
+    '''
     
-    with open ('students_mean.pickle','wb') as file:
-        pickle.dump(students_mean,file)
+    #dkt.model.build_graph()
+    #dkt.load_model()
+
+    #students_mean = dkt.generate_knowledge_estimates(students_interations,problems_per_skills)
+    #with open ('students_mean.pickle','wb') as file:
+    #    pickle.dump(students_mean,file)
+    
+    
+
 
     
     sess.close()

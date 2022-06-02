@@ -55,6 +55,8 @@ class OriginalInputProcessor(object):
 
         X = np.concatenate((x_problem_seqs, x_correct_seqs), axis=2)
 
+        print(X.shape) 
+
         result = (X, y_problem_seqs, y_correct_seqs)
         return result
 

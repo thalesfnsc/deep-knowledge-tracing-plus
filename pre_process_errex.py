@@ -102,7 +102,7 @@ students_data ={}
 for student in df_3['student_id'].unique():
     
     student_info= {}
-    #student_info['id'] = [student,student]
+    student_info['id'] = [student]
 
     student_info['exercise_number'] = [(len(df_3[df_3['student_id']==student]['problem_id'].values))]
     #student_info['exercise_id'] = df_3[df_3['student_id']==student]['problem_id'].values.astype(int)
